@@ -28,7 +28,7 @@ resource "azurerm_virtual_network" "core_vnet" {
 }
 
 # Subnet Example
-resource "azurerm_subnet" "core_subnet"{
+resource "azurerm_subnet" "core_subnet" {
   name                 = "app-subnet"
   resource_group_name  = azurerm_resource_group.core_rg.name
   virtual_network_name = azurerm_virtual_network.core_vnet.name
@@ -63,6 +63,15 @@ resource "azurerm_storage_container" "core_storage_container" {
   container_access_type = "private"
 }
 
+resource "azurerm_container_app_environment" "core_aca_env" {
+  name                = "ACA-Environment"
+  location            = azurerm_resource_group.core_rg.location
+  resource_group_name = azurerm_resource_group.core_rg.name
+}
+
+output "aca_env" {
+  value = azurerm_container_app_environment.core_aca_env
+}
 
 output "rg" {
   value = azurerm_resource_group.core_rg

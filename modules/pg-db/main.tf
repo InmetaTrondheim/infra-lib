@@ -17,18 +17,21 @@ resource "random_string" "server_suffix" {
 
 
 resource "azurerm_postgresql_server" "pg_server" {
-  name                = "${var.name}${random_string.server_suffix.result}"
-  location            = var.core.location
-  resource_group_name = var.core.rg.name
-  administrator_login = "adminuser"
-  administrator_login_password = "H@Sh1CoR3!"
-  sku_name            = "B_Gen5_2"
-  version             = "11"
-  storage_mb          = 5120
-  backup_retention_days = 7
-  geo_redundant_backup_enabled = false
+  name                          = "${var.name}${random_string.server_suffix.result}"
+  location                      = var.core.location
+  resource_group_name           = var.core.rg.name
+  administrator_login           = "adminuser"
+  administrator_login_password  = "H@Sh1CoR3!"
+  sku_name                      = "B_Gen5_2"
+  version                       = "11"
+  storage_mb                    = 5120
+  backup_retention_days         = 7
+  geo_redundant_backup_enabled  = false
   public_network_access_enabled = true
-  ssl_enforcement_enabled = true
+  ssl_enforcement_enabled       = true
+  lifecycle {
+    # prevent_destroy = true
+  }
 }
 
 resource "azurerm_postgresql_database" "pg_db" {
@@ -36,7 +39,10 @@ resource "azurerm_postgresql_database" "pg_db" {
   resource_group_name = var.core.rg.name
   server_name         = azurerm_postgresql_server.pg_server.name
   charset             = "UTF8"
-  collation           = "en_US.UTF8"
+  collation           = "en-US"
+  lifecycle {
+    # prevent_destroy = true
+  }
 }
 
 output "pg_server" {
