@@ -38,6 +38,7 @@ module "core" {
   project_name  = var.project_name
   location      = "West US"
   address_space = ["10.0.0.0/16"]
+  environment   = "dev"
 }
 
 
@@ -55,20 +56,29 @@ resource "azurerm_container_app" "frontend" {
 
   template {
     container {
-      name   = "aca-container"
-      image  = "mcr.microsoft.com/azuredocs/aci-helloworld"
+      name   = "frontend"
+      image  = "ghcr.io/marnyg/frontend:latest"
       cpu    = "0.5"
       memory = "1Gi"
 
 
       env {
         name  = "BACKEND_HOST"
-        value = "http://url:80"
+        value = azurerm_container_app.backend.latest_revision_fqdn
+
+      }
+      env {
+        name  = "BACKEND_PORT"
+        value = "80"
       }
     }
   }
+
+
   ingress {
-    target_port = 80
+    target_port                = 5000
+    allow_insecure_connections = true
+    external_enabled           = true
     traffic_weight {
       percentage      = 100
       latest_revision = true
@@ -84,8 +94,8 @@ resource "azurerm_container_app" "backend" {
 
   template {
     container {
-      name   = "aca-container"
-      image  = "mcr.microsoft.com/azuredocs/aci-helloworld"
+      name   = "backend"
+      image  = "ghcr.io/marnyg/backend:latest"
       cpu    = "0.5"
       memory = "1Gi"
 
@@ -108,8 +118,11 @@ resource "azurerm_container_app" "backend" {
       }
     }
   }
+
   ingress {
-    target_port = 80
+    target_port                = 5001
+    allow_insecure_connections = true
+    external_enabled           = false
     traffic_weight {
       percentage      = 100
       latest_revision = true

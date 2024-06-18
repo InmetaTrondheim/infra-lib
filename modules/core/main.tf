@@ -1,20 +1,3 @@
-variable "location" {
-  description = "The location where resources will be created."
-  type        = string
-}
-
-variable "project_name" {
-  description = "The name of the project to which resources are tied."
-  type        = string
-}
-
-variable "address_space" {
-  description = "The address space for the Virtual Network."
-  type        = list(string)
-}
-
-
-
 resource "azurerm_resource_group" "core_rg" {
   name     = "${var.project_name}-rg"
   location = var.location
@@ -32,7 +15,25 @@ resource "azurerm_subnet" "core_subnet" {
   name                 = "app-subnet"
   resource_group_name  = azurerm_resource_group.core_rg.name
   virtual_network_name = azurerm_virtual_network.core_vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
+  # address_prefixes     = ["10.0.0.0/22"]
+  address_prefixes = [cidrsubnet(var.address_space[0], 2, 0)] # 10.0.0.0/22
+
+  delegation {
+    name = "postgresqlDelegation"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        # "Microsoft.Network/virtualNetworks/subnets/joinViaServiceEndpoint/action"
+      ]
+    }
+  }
+}
+resource "azurerm_subnet" "core_subnet_container" {
+  name                 = "container-subnet"
+  resource_group_name  = azurerm_resource_group.core_rg.name
+  virtual_network_name = azurerm_virtual_network.core_vnet.name
+  address_prefixes     = [cidrsubnet(var.address_space[0], 2, 1)] # 10.0.0.0/22
 }
 
 # Network Security Group
@@ -63,10 +64,24 @@ resource "azurerm_storage_container" "core_storage_container" {
   container_access_type = "private"
 }
 
-resource "azurerm_container_app_environment" "core_aca_env" {
-  name                = "ACA-Environment"
-  location            = azurerm_resource_group.core_rg.location
+resource "azurerm_private_dns_zone" "dns_zone" {
+  name                = "${var.project_name}.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.core_rg.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
+  name                  = "dns-zone-link"
+  resource_group_name   = azurerm_resource_group.core_rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.dns_zone.name
+  virtual_network_id    = azurerm_virtual_network.core_vnet.id
+}
+
+resource "azurerm_container_app_environment" "core_aca_env" {
+  name                     = "ACA-Environment"
+  location                 = azurerm_resource_group.core_rg.location
+  resource_group_name      = azurerm_resource_group.core_rg.name
+  infrastructure_subnet_id = azurerm_subnet.core_subnet_container.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.core_log_analytics.id
 }
 
 output "aca_env" {
@@ -91,4 +106,8 @@ output "address_space" {
 
 output "location" {
   value = azurerm_virtual_network.core_vnet.location
+}
+
+output "private_dns_zone" {
+  value = azurerm_private_dns_zone.dns_zone
 }
