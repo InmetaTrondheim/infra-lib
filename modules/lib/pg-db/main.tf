@@ -7,6 +7,12 @@ variable "name" {
   type        = string
 }
 
+variable "databases" {
+  description = "The databases to create on the PostgreSQL instance."
+  type        = list(string)
+  default     = ["main"]
+}
+
 resource "random_string" "server_suffix" {
   length  = 8
   special = false
@@ -42,6 +48,22 @@ resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
   virtual_network_id    = var.core.vnet.id
 }
 
+resource "azurerm_subnet" "db_subnet" {
+  name                 = "db-subnet"
+  resource_group_name  = var.core.rg.name
+  virtual_network_name = var.core.vnet.name
+  address_prefixes     = [cidrsubnet(var.core.address_space[0], 2, 0)] # 10.0.0.0/22
+
+  delegation {
+    name = "postgresqlDelegation"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
 
 resource "azurerm_postgresql_flexible_server" "pg_server" {
   name                   = "${var.name}${random_string.server_suffix.result}"
@@ -57,21 +79,22 @@ resource "azurerm_postgresql_flexible_server" "pg_server" {
     mode = "SameZone"
   }
   public_network_access_enabled = false # Ensure this is set to false for private access
-  delegated_subnet_id           = var.core.subnet.id
+  delegated_subnet_id           = resource.azurerm_subnet.db_subnet.id
   private_dns_zone_id           = resource.azurerm_private_dns_zone.dns_zone.id
 }
 
-resource "azurerm_postgresql_flexible_server_database" "pg_db" {
-  name      = var.name
+resource "azurerm_postgresql_flexible_server_database" "pg_dbs" {
+  for_each  = toset(var.databases)
+  name      = each.key
   server_id = azurerm_postgresql_flexible_server.pg_server.id
   collation = "en_US.utf8"
   charset   = "utf8"
-
   # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }
 }
+
 
 resource "azurerm_monitor_diagnostic_setting" "pg_db_diagnostic" {
   name                       = "pg-db-diagnostic"
@@ -98,6 +121,6 @@ output "pg_server" {
   value = azurerm_postgresql_flexible_server.pg_server
 }
 
-output "pg_db" {
-  value = azurerm_postgresql_flexible_server_database.pg_db
+output "pg_dbs" {
+  value = azurerm_postgresql_flexible_server_database.pg_dbs
 }

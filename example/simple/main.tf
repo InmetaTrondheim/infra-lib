@@ -43,7 +43,7 @@ module "core" {
 
 
 module "pg-db" {
-  source = "../../modules/pg-db"
+  source = "../../modules/lib/pg-db"
   core   = module.core
   name   = "pg-db"
 }
@@ -106,7 +106,7 @@ resource "azurerm_container_app" "backend" {
       }
       env {
         name  = "POSTGRES_DB"
-        value = module.pg-db.pg_db.name
+        value = module.pg-db.pg_dbs.main.name
       }
       env {
         name  = "POSTGRES_USER"
