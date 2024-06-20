@@ -34,7 +34,7 @@ provider "azurerm" {
 }
 
 module "core" {
-  source        = "../../modules/core"
+  source        = "../../modules/project-core"
   project_name  = var.project_name
   location      = "West US"
   address_space = ["10.0.0.0/16"]
@@ -110,11 +110,11 @@ resource "azurerm_container_app" "backend" {
       }
       env {
         name  = "POSTGRES_USER"
-        value = "adminuser"
+        value = module.pg-db.pg_server.administrator_login
       }
       env {
         name  = "POSTGRES_PASSWORD"
-        value = "H@Sh1CoR3!"
+        value = module.pg-db.pg_server.administrator_password
       }
     }
   }
