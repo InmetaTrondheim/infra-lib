@@ -3,7 +3,7 @@ variable "core" {
 }
 
 resource "azurerm_servicebus_namespace" "sb_namespace" {
-  name                = "${var.core.project_name}${random_string.namespace_suffix.result}"
+  name                = "${var.core.name}${random_string.namespace_suffix.result}"
   location            = var.core.rg.location
   resource_group_name = var.core.rg.name
   sku                 = "Standard" # Can be Basic, Standard, or Premium
@@ -16,7 +16,7 @@ resource "random_string" "namespace_suffix" {
 }
 
 resource "azurerm_servicebus_queue" "sb_queue" {
-  name         = var.core.project_name
+  name         = var.core.name
   namespace_id = azurerm_servicebus_namespace.sb_namespace.id
 
   # Example settings - these should be adjusted to fit actual use case requirements

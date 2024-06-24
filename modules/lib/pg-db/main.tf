@@ -37,7 +37,7 @@ resource "azurerm_key_vault_secret" "db_user" {
 }
 
 resource "azurerm_private_dns_zone" "dns_zone" {
-  name                = "${var.core.project_name}.postgres.database.azure.com"
+  name                = "${var.core.name}.postgres.database.azure.com"
   resource_group_name = var.core.rg.name
 }
 

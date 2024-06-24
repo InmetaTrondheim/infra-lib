@@ -8,7 +8,7 @@ resource "random_string" "storage_suffix" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                = "${var.core.project_name}0${random_string.storage_suffix.result}"
+  name                = "${var.core.name}0${random_string.storage_suffix.result}"
   resource_group_name = var.core.rg.name
   location            = var.core.rg.location
   sku                 = "Premium"

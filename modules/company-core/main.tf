@@ -22,7 +22,7 @@ module "monitoring" {
   source = "../lib/monitoring"
   core = {
     rg           = azurerm_resource_group.tenant_core_rg
-    project_name = var.tenant_name
+    name = var.tenant_name
     environment  = "common"
   }
 }
@@ -30,7 +30,7 @@ module "monitoring" {
 locals {
   core = {
     rg            = azurerm_resource_group.tenant_core_rg
-    project_name  = var.tenant_name
+    name  = var.tenant_name
     environment   = "common"
     log_analytics = module.monitoring.log_analytics
   }
@@ -44,7 +44,7 @@ module "storage_account" {
 
 
 module "service-bus" {
-  source = "../lib/queue"
+  source = "../lib/service-bus"
   core   = local.core
 }
 
@@ -59,7 +59,7 @@ module "key-vault" {
   core   = local.core
 }
 
-output "project_name" {
+output "name" {
   value = var.tenant_name
 }
 

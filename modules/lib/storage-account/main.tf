@@ -16,7 +16,7 @@ resource "random_string" "storage_suffix" {
 }
 
 resource "azurerm_storage_account" "core_storage" {
-  name                     = "${var.core.project_name}0${random_string.storage_suffix.result}"
+  name                     = "${var.core.name}0${random_string.storage_suffix.result}"
   resource_group_name      = var.core.rg.name
   location                 = var.core.rg.location
   account_tier             = "Standard"

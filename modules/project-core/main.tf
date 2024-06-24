@@ -35,7 +35,7 @@ module "monitoring" {
   source = "../lib/monitoring"
   core = {
     rg           = azurerm_resource_group.core_rg
-    project_name = var.project_name
+    name = var.project_name
     environment  = var.environment
   }
 }
@@ -43,7 +43,7 @@ module "monitoring" {
 locals {
   core = {
     rg            = azurerm_resource_group.core_rg
-    project_name  = var.project_name
+    name  = var.project_name
     environment   = var.environment
     log_analytics = module.monitoring.log_analytics
     vnet          = azurerm_virtual_network.core_vnet
@@ -65,7 +65,7 @@ output "log_analytics" {
   value = module.monitoring.log_analytics
 }
 
-output "project_name" {
+output "name" {
   value = var.project_name
 }
 

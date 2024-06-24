@@ -2,11 +2,10 @@ variable "core" {
   description = "The core module"
 }
 
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "core_key_vault" {
-  name                = "core-kv-${var.core.project_name}-${var.core.environment}"
+  name                = "core-kv-${var.core.name}-${var.core.environment}"
   location            = var.core.rg.location
   resource_group_name = var.core.rg.name
   tenant_id           = data.azurerm_client_config.current.tenant_id

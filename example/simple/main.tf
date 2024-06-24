@@ -20,14 +20,6 @@ terraform {
   }
 
   # uncomment once backend is created
-  backend "azurerm" {
-    resource_group_name  = "common-rg"
-    storage_account_name = "common0xg9"
-    container_name       = "tfstate-app1"
-    key                  = "common.terraform.tfstate"
-  }
-
-  # uncomment once backend is created
   # backend "azurerm" {
   #   resource_group_name  = # get value for storage created in tenant-bootstrap
   #   storage_account_name = # get value for storage created in tenant-bootstrap
