@@ -2,13 +2,8 @@ variable "core" {
   description = "Core module outputs"
 }
 
-variable "name" {
-  description = "The name of the Service Bus namespace and the queue."
-  type        = string
-}
-
-resource "azurerm_service_bus_namespace" "sb_namespace" {
-  name                = "${var.name}${random_string.namespace_suffix.result}"
+resource "azurerm_servicebus_namespace" "sb_namespace" {
+  name                = "${var.core.project_name}${random_string.namespace_suffix.result}"
   location            = var.core.rg.location
   resource_group_name = var.core.rg.name
   sku                 = "Standard" # Can be Basic, Standard, or Premium
@@ -20,10 +15,9 @@ resource "random_string" "namespace_suffix" {
   upper   = false
 }
 
-resource "azurerm_service_bus_queue" "sb_queue" {
-  name                = var.name
-  resource_group_name = var.core.rg.name
-  namespace_name      = azurerm_service_bus_namespace.sb_namespace.name
+resource "azurerm_servicebus_queue" "sb_queue" {
+  name         = var.core.project_name
+  namespace_id = azurerm_servicebus_namespace.sb_namespace.id
 
   # Example settings - these should be adjusted to fit actual use case requirements
   max_size_in_megabytes                   = 1024
@@ -34,7 +28,7 @@ resource "azurerm_service_bus_queue" "sb_queue" {
 
 resource "azurerm_monitor_diagnostic_setting" "sb_diagnostic" {
   name                       = "sb-queue-diagnostic"
-  target_resource_id         = azurerm_service_bus_namespace.sb_namespace.id
+  target_resource_id         = azurerm_servicebus_namespace.sb_namespace.id
   log_analytics_workspace_id = var.core.log_analytics.id
 
   log {
@@ -53,11 +47,11 @@ resource "azurerm_monitor_diagnostic_setting" "sb_diagnostic" {
   }
 }
 
-output "service_bus_namespace" {
-  value = azurerm_service_bus_namespace.sb_namespace
+output "servicebus_namespace" {
+  value = azurerm_servicebus_namespace.sb_namespace
 }
 
-output "service_bus_queue" {
-  value = azurerm_service_bus_queue.sb_queue
+output "servicebus_queue" {
+  value = azurerm_servicebus_queue.sb_queue
 }
 

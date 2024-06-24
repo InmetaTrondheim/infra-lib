@@ -30,3 +30,7 @@ resource "azurerm_storage_container" "core_storage_containers" {
   storage_account_name  = azurerm_storage_account.core_storage.name
   container_access_type = "private"
 }
+
+output "storage_account" {
+  value = azurerm_storage_account.core_storage
+}

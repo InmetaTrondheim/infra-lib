@@ -3,7 +3,7 @@ variable "location" {
   type        = string
 }
 
-variable "project_name" {
+variable "tenant_name" {
   description = "The name of the project to which resources are tied."
   type        = string
 }
@@ -18,36 +18,49 @@ resource "azurerm_resource_group" "tenant_core_rg" {
   name     = "${var.tenant_name}-rg"
   location = var.location
 }
-
-module "storage_account" {
-  source = "../lib/storage-account"
-  core = {
-    rg           = azurerm_resource_group.core_rg
-    project_name = var.project_name
-  }
-  storage_containers = var.storage_containers
-}
-
 module "monitoring" {
   source = "../lib/monitoring"
   core = {
-    rg           = azurerm_resource_group.core_rg
-    project_name = var.project_name
+    rg           = azurerm_resource_group.tenant_core_rg
+    project_name = var.tenant_name
     environment  = "common"
   }
+}
+
+locals {
+  core = {
+    rg            = azurerm_resource_group.tenant_core_rg
+    project_name  = var.tenant_name
+    environment   = "common"
+    log_analytics = module.monitoring.log_analytics
+  }
+}
+
+module "storage_account" {
+  source             = "../lib/storage-account"
+  core               = local.core
+  storage_containers = var.storage_containers
+}
+
+
+module "service-bus" {
+  source = "../lib/queue"
+  core   = local.core
+}
+
+
+module "container_registry" {
+  source = "../lib/container-registry"
+  core   = local.core
 }
 
 module "key-vault" {
   source = "../lib/key-vault"
-  core = {
-    rg           = azurerm_resource_group.core_rg
-    project_name = var.project_name
-    environment  = "common"
-  }
+  core   = local.core
 }
 
 output "project_name" {
-  value = var.project_name
+  value = var.tenant_name
 }
 
 output "environment" {
@@ -59,5 +72,14 @@ output "kv" {
 }
 
 output "rg" {
-  value = azurerm_resource_group.core_rg
+  value = azurerm_resource_group.tenant_core_rg
 }
+
+output "storage_account" {
+  value = module.storage_account.storage_account
+}
+
+output "container_registry" {
+  value = module.container_registry.acr
+}
+

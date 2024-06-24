@@ -1,6 +1,6 @@
-variable "project_name" {
+variable "tenant_name" {
   type    = string
-  default = "tennant-common"
+  default = "common"
 }
 variable "location" {
   type    = string
@@ -17,11 +17,12 @@ terraform {
 
   # uncomment once backend is created
   # backend "azurerm" {
-  #   resource_group_name  = module.tenant-core.tenant_core_rg.name
-  #   storage_account_name = module.tenant-core.storage_account.core.name
-  #   container_name       = "tfstate-common"
-  #   key                  = "core.terraform.tfstate"
+  #   resource_group_name  = # get value from output after running terraform apply
+  #   storage_account_name = # get value from output after running terraform apply
+  #   container_name       = # get value from output after running terraform apply
+  #   key                  = # get value from output after running terraform apply
   # }
+
 }
 
 provider "azurerm" {
@@ -30,8 +31,27 @@ provider "azurerm" {
 
 module "tenant-core" {
   source             = "../../modules/company-core"
-  project_name       = var.project_name
-  location           = "West US"
-  storage_containers = ["tfstate-common", "tfstate-app1"]
+  tenant_name        = var.tenant_name
+  location           = "North Europe"
+  storage_containers = ["tfstate-${var.tenant_name}", "tfstate-app1"]
 }
 
+#print instructions about the next steps for using the state file
+output "state_file_instructions" {
+  value = <<EOF
+  To use the state file, uncomment the backend block in main.tf and run terraform init.
+  The block should look like this:
+  ```
+  backend "azurerm" {
+      resource_group_name  = "${module.tenant-core.rg.name}"
+      storage_account_name = "${module.tenant-core.storage_account.name}"
+      container_name       = "tfstate-${var.tenant_name}"
+      key                  = "${var.tenant_name}.terraform.tfstate"
+  
+  }
+  ```
+
+  Then run "terraform init -migrate-state" and "terraform apply".
+  
+  EOF
+}

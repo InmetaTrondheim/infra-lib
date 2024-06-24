@@ -20,13 +20,21 @@ terraform {
   }
 
   # uncomment once backend is created
+  backend "azurerm" {
+    resource_group_name  = "common-rg"
+    storage_account_name = "common0xg9"
+    container_name       = "tfstate-app1"
+    key                  = "common.terraform.tfstate"
+  }
 
+  # uncomment once backend is created
   # backend "azurerm" {
-  #   resource_group_name  = "TerraformStateRG"
-  #   storage_account_name = "tfstate${var.project_name}"
-  #   container_name       = "tfstate"
-  #   key                  = "core.terraform.tfstate"
+  #   resource_group_name  = # get value for storage created in tenant-bootstrap
+  #   storage_account_name = # get value for storage created in tenant-bootstrap
+  #   container_name       = # get value for storage created in tenant-bootstrap
+  #   key                  = # get value for storage created in tenant-bootstrap
   # }
+
 }
 
 provider "azurerm" {
@@ -43,9 +51,10 @@ module "core" {
 
 
 module "pg-db" {
-  source = "../../modules/lib/pg-db"
-  core   = module.core
-  name   = "pg-db"
+  source    = "../../modules/lib/pg-db"
+  core      = module.core
+  name      = "pg-db"
+  databases = ["main"]
 }
 
 resource "azurerm_container_app" "frontend" {

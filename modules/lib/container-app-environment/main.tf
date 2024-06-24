@@ -28,7 +28,7 @@ resource "azurerm_network_security_rule" "http" {
   network_security_group_name = azurerm_network_security_group.nsg_app.name
 }
 resource "azurerm_network_security_rule" "https" {
-  name = "https"
+  name                        = "https"
   priority                    = 101
   direction                   = "Inbound"
   access                      = "Allow"

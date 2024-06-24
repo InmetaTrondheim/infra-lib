@@ -91,7 +91,7 @@ resource "azurerm_postgresql_flexible_server_database" "pg_dbs" {
   charset   = "utf8"
   # prevent the possibility of accidental data loss
   lifecycle {
-    prevent_destroy = true
+    # prevent_destroy = true
   }
 }
 
